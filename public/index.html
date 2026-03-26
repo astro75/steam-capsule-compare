@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Steam Capsule Compare</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Motiva Sans', Arial, Helvetica, sans-serif;
+      background: #1b2838;
+      color: #c7d5e0;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(180deg, #171a21 0%, #1b2838 100%);
+      padding: 20px 0;
+      border-bottom: 1px solid #2a475e;
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    h1 {
+      font-size: 24px;
+      color: #fff;
+      font-weight: 300;
+      letter-spacing: 1px;
+    }
+
+    h1 span { color: #66c0f4; }
+
+    .subtitle {
+      font-size: 13px;
+      color: #8f98a0;
+      margin-top: 4px;
+    }
+
+    .search-section {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 10px;
+      max-width: 600px;
+    }
+
+    .search-box input {
+      flex: 1;
+      padding: 10px 16px;
+      background: #316282;
+      border: 1px solid #4a8db1;
+      border-radius: 3px;
+      color: #fff;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .search-box input::placeholder { color: #8f98a0; }
+    .search-box input:focus { border-color: #66c0f4; }
+
+    .search-box button {
+      padding: 10px 24px;
+      background: linear-gradient(90deg, #47bfff 0%, #1a44c2 100%);
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .search-box button:hover { opacity: 0.9; }
+    .search-box button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .search-hint {
+      font-size: 12px;
+      color: #8f98a0;
+      margin-top: 8px;
+    }
+
+    .search-results {
+      max-width: 600px;
+      margin-top: 8px;
+      background: #2a475e;
+      border-radius: 3px;
+      overflow: hidden;
+      display: none;
+    }
+
+    .search-results.show { display: block; }
+
+    .search-result-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid #1b2838;
+      transition: background 0.15s;
+    }
+
+    .search-result-item:hover { background: #3d6c8e; }
+    .search-result-item:last-child { border-bottom: none; }
+
+    .search-result-item img {
+      width: 120px;
+      height: 45px;
+      object-fit: cover;
+      border-radius: 2px;
+    }
+
+    .search-result-item .name {
+      font-size: 14px;
+      color: #fff;
+    }
+
+    .search-result-item .appid-label {
+      font-size: 11px;
+      color: #8f98a0;
+    }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #8f98a0;
+      display: none;
+    }
+
+    .loading.show { display: block; }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #2a475e;
+      border-top-color: #66c0f4;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Comparison grid */
+    .compare-section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px 40px;
+      display: none;
+    }
+
+    .compare-section.show { display: block; }
+
+    .section-title {
+      font-size: 18px;
+      color: #fff;
+      margin: 30px 0 6px;
+      font-weight: 400;
+    }
+
+    .section-desc {
+      font-size: 13px;
+      color: #8f98a0;
+      margin-bottom: 16px;
+    }
+
+    .your-game-banner {
+      background: #2a475e;
+      border: 2px solid #66c0f4;
+      border-radius: 4px;
+      padding: 16px;
+      margin-bottom: 8px;
+    }
+
+    .your-game-banner .label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #66c0f4;
+      margin-bottom: 8px;
+    }
+
+    .game-name {
+      font-size: 20px;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    /* Asset type tabs */
+    .asset-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .asset-tab {
+      padding: 8px 16px;
+      background: #2a475e;
+      color: #8f98a0;
+      border: none;
+      border-radius: 3px 3px 0 0;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.15s;
+    }
+
+    .asset-tab:hover { color: #fff; background: #3d6c8e; }
+    .asset-tab.active { color: #fff; background: #3d6c8e; border-bottom: 2px solid #66c0f4; }
+
+    /* Image grids */
+    .asset-panel { display: none; }
+    .asset-panel.active { display: block; }
+
+    .capsule-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .capsule-grid.header-grid { grid-template-columns: repeat(auto-fill, minmax(440px, 1fr)); }
+    .capsule-grid.capsule-sm-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+    .capsule-grid.screenshot-grid { grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); }
+    .capsule-grid.library-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+
+    .capsule-card {
+      background: #2a475e;
+      border-radius: 4px;
+      overflow: hidden;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .capsule-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+
+    .capsule-card.highlight { border: 2px solid #66c0f4; }
+
+    .capsule-card img {
+      width: 100%;
+      display: block;
+      background: #1b2838;
+      min-height: 60px;
+    }
+
+    .capsule-card .card-info {
+      padding: 8px 10px;
+    }
+
+    .capsule-card .card-name {
+      font-size: 13px;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .capsule-card .card-appid {
+      font-size: 11px;
+      color: #8f98a0;
+    }
+
+    .capsule-card .card-tag {
+      display: inline-block;
+      font-size: 10px;
+      color: #66c0f4;
+      background: rgba(102, 192, 244, 0.1);
+      padding: 1px 6px;
+      border-radius: 2px;
+      margin-top: 4px;
+    }
+
+    /* Screenshots carousel per game */
+    .screenshot-set {
+      background: #2a475e;
+      border-radius: 4px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+
+    .screenshot-set .set-title {
+      font-size: 14px;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .screenshot-set.highlight { border: 2px solid #66c0f4; }
+
+    .screenshot-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .screenshot-row img {
+      height: 180px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .screenshot-row img:hover { opacity: 0.85; }
+
+    /* Lightbox */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .lightbox.show { display: flex; }
+
+    .lightbox img {
+      max-width: 95vw;
+      max-height: 95vh;
+      border-radius: 4px;
+    }
+
+    .error-msg {
+      background: #4c1e1e;
+      color: #ff6b6b;
+      padding: 12px 16px;
+      border-radius: 4px;
+      margin: 16px 0;
+      display: none;
+    }
+
+    .error-msg.show { display: block; }
+
+    @media (max-width: 600px) {
+      .capsule-grid.header-grid { grid-template-columns: 1fr; }
+      .capsule-grid.screenshot-grid { grid-template-columns: 1fr; }
+      .search-box { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-inner">
+      <h1>Steam <span>Capsule Compare</span></h1>
+      <div class="subtitle">Compare your game's capsule images & marketing with similar games on Steam</div>
+    </div>
+  </div>
+
+  <div class="search-section">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search by game name or enter App ID (e.g. 730)">
+      <button id="searchBtn" onclick="handleSearch()">Search</button>
+    </div>
+    <div class="search-hint">Enter a game name or Steam App ID, then select a game to compare</div>
+    <div class="search-results" id="searchResults"></div>
+  </div>
+
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <div>Fetching game data and finding similar games...</div>
+  </div>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <div class="compare-section" id="compareSection">
+    <div class="your-game-banner" id="yourGameBanner">
+      <div class="label">Your Game</div>
+      <div class="game-name" id="yourGameName"></div>
+    </div>
+
+    <div class="asset-tabs" id="assetTabs">
+      <button class="asset-tab active" data-tab="headers" onclick="switchTab('headers')">Header Capsule (460×215)</button>
+      <button class="asset-tab" data-tab="small-capsules" onclick="switchTab('small-capsules')">Small Capsule (231×87)</button>
+      <button class="asset-tab" data-tab="library" onclick="switchTab('library')">Library Capsule (600×900)</button>
+      <button class="asset-tab" data-tab="screenshots" onclick="switchTab('screenshots')">Screenshots</button>
+    </div>
+
+    <div class="asset-panel active" id="panel-headers">
+      <div class="section-desc">Header capsule images shown on the store page</div>
+      <div class="capsule-grid header-grid" id="grid-headers"></div>
+    </div>
+
+    <div class="asset-panel" id="panel-small-capsules">
+      <div class="section-desc">Small capsule images used in search results and wishlists</div>
+      <div class="capsule-grid capsule-sm-grid" id="grid-small-capsules"></div>
+    </div>
+
+    <div class="asset-panel" id="panel-library">
+      <div class="section-desc">Vertical library capsule images (shown in Steam library)</div>
+      <div class="capsule-grid library-grid" id="grid-library"></div>
+    </div>
+
+    <div class="asset-panel" id="panel-screenshots">
+      <div class="section-desc">Store page screenshots</div>
+      <div id="grid-screenshots"></div>
+    </div>
+  </div>
+
+  <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+    <img id="lightboxImg" src="" alt="">
+  </div>
+
+  <script>
+    const BASE = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps`;
+    let allGames = []; // { appid, name, details, isYourGame }
+
+    document.getElementById('searchInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleSearch();
+    });
+
+    async function handleSearch() {
+      const input = document.getElementById('searchInput').value.trim();
+      if (!input) return;
+
+      const resultsEl = document.getElementById('searchResults');
+
+      // If it's a pure number or steam URL, go directly
+      let appid = null;
+      if (/^\d+$/.test(input)) {
+        appid = input;
+      } else {
+        const urlMatch = input.match(/\/app\/(\d+)/);
+        if (urlMatch) appid = urlMatch[1];
+      }
+
+      if (appid) {
+        resultsEl.classList.remove('show');
+        await loadComparison(appid);
+        return;
+      }
+
+      // Search by name
+      const btn = document.getElementById('searchBtn');
+      btn.disabled = true;
+      btn.textContent = 'Searching...';
+
+      try {
+        const res = await fetch(`/api/search?term=${encodeURIComponent(input)}`);
+        const data = await res.json();
+
+        if (!data.items || data.items.length === 0) {
+          resultsEl.innerHTML = '<div style="padding:12px;color:#8f98a0;">No games found</div>';
+          resultsEl.classList.add('show');
+          return;
+        }
+
+        resultsEl.innerHTML = data.items.slice(0, 8).map(item => `
+          <div class="search-result-item" onclick="selectGame('${item.id}')">
+            <img src="${item.tiny_image}" alt="" onerror="this.style.display='none'">
+            <div>
+              <div class="name">${escHtml(item.name)}</div>
+              <div class="appid-label">App ID: ${item.id}</div>
+            </div>
+          </div>
+        `).join('');
+        resultsEl.classList.add('show');
+      } catch (err) {
+        showError('Search failed: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Search';
+      }
+    }
+
+    function selectGame(appid) {
+      document.getElementById('searchResults').classList.remove('show');
+      loadComparison(appid);
+    }
+
+    async function loadComparison(appid) {
+      const loading = document.getElementById('loading');
+      const compareSection = document.getElementById('compareSection');
+      const errorMsg = document.getElementById('errorMsg');
+
+      loading.classList.add('show');
+      compareSection.classList.remove('show');
+      errorMsg.classList.remove('show');
+      allGames = [];
+
+      try {
+        // 1. Fetch main game details
+        const mainRes = await fetch(`/api/appdetails/${appid}`);
+        const mainData = await mainRes.json();
+
+        if (!mainData[appid] || !mainData[appid].success) {
+          throw new Error(`Could not find game with App ID ${appid}`);
+        }
+
+        const mainGame = mainData[appid].data;
+        allGames.push({ appid, name: mainGame.name, details: mainGame, isYourGame: true });
+
+        document.getElementById('yourGameName').textContent = mainGame.name;
+
+        // 2. Fetch similar games
+        const simRes = await fetch(`/api/morelike/${appid}`);
+        const simData = await simRes.json();
+        const similarIds = (simData.similar || []).map(s => s.appid);
+
+        // 3. Fetch details for similar games (batch)
+        if (similarIds.length > 0) {
+          const fetches = similarIds.slice(0, 10).map(async (sid) => {
+            try {
+              const r = await fetch(`/api/appdetails/${sid}`);
+              const d = await r.json();
+              if (d[sid] && d[sid].success) {
+                allGames.push({ appid: sid, name: d[sid].data.name, details: d[sid].data, isYourGame: false });
+              }
+            } catch {}
+          });
+          await Promise.all(fetches);
+        }
+
+        renderComparison();
+        compareSection.classList.add('show');
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        loading.classList.remove('show');
+      }
+    }
+
+    function renderComparison() {
+      renderHeaderGrid();
+      renderSmallCapsuleGrid();
+      renderLibraryGrid();
+      renderScreenshots();
+    }
+
+    function makeCard(game, imgUrl, extraClass = '') {
+      return `
+        <div class="capsule-card ${game.isYourGame ? 'highlight' : ''} ${extraClass}">
+          <img src="${imgUrl}" alt="${escHtml(game.name)}"
+               onerror="this.parentElement.style.display='none'"
+               onclick="openLightbox('${imgUrl}')">
+          <div class="card-info">
+            <div class="card-name" title="${escHtml(game.name)}">${escHtml(game.name)}</div>
+            <div class="card-appid">App ID: ${game.appid}</div>
+            ${game.isYourGame ? '<div class="card-tag">YOUR GAME</div>' : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderHeaderGrid() {
+      const grid = document.getElementById('grid-headers');
+      grid.innerHTML = allGames.map(g => {
+        const url = g.details.header_image || `${BASE}/${g.appid}/header.jpg`;
+        return makeCard(g, url);
+      }).join('');
+    }
+
+    function renderSmallCapsuleGrid() {
+      const grid = document.getElementById('grid-small-capsules');
+      grid.innerHTML = allGames.map(g => {
+        const url = g.details.capsule_image || `${BASE}/${g.appid}/capsule_231x87.jpg`;
+        return makeCard(g, url);
+      }).join('');
+    }
+
+    function renderLibraryGrid() {
+      const grid = document.getElementById('grid-library');
+      grid.innerHTML = allGames.map(g => {
+        const url = `${BASE}/${g.appid}/library_600x900.jpg`;
+        return makeCard(g, url);
+      }).join('');
+    }
+
+    function renderScreenshots() {
+      const container = document.getElementById('grid-screenshots');
+      container.innerHTML = allGames.map(g => {
+        const screenshots = (g.details.screenshots || []).slice(0, 6);
+        if (screenshots.length === 0) return '';
+        return `
+          <div class="screenshot-set ${g.isYourGame ? 'highlight' : ''}">
+            <div class="set-title">
+              ${escHtml(g.name)}
+              ${g.isYourGame ? ' <span style="color:#66c0f4;font-size:11px;">YOUR GAME</span>' : ''}
+              <span style="color:#8f98a0;font-size:11px;"> — App ${g.appid}</span>
+            </div>
+            <div class="screenshot-row">
+              ${screenshots.map(s => `
+                <img src="${s.path_thumbnail}" alt="Screenshot"
+                     onclick="openLightbox('${s.path_full}')">
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.asset-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+      document.querySelectorAll('.asset-panel').forEach(p => p.classList.toggle('active', p.id === `panel-${tab}`));
+    }
+
+    function openLightbox(url) {
+      event.stopPropagation();
+      document.getElementById('lightboxImg').src = url;
+      document.getElementById('lightbox').classList.add('show');
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('show');
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeLightbox();
+    });
+
+    function showError(msg) {
+      const el = document.getElementById('errorMsg');
+      el.textContent = msg;
+      el.classList.add('show');
+    }
+
+    function escHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>
