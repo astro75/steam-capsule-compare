@@ -430,8 +430,8 @@
       <input type="range" id="scaleSlider" min="30" max="150" value="100" oninput="updateScale(this.value)">
       <span class="scale-value" id="scaleValue">100%</span>
       <label style="margin-left:16px;cursor:pointer;user-select:none;">
-        <input type="checkbox" id="hideLabels" onchange="toggleLabels(this.checked)" style="accent-color:#66c0f4;cursor:pointer;">
-        Hide labels
+        <input type="checkbox" id="showLabels" checked onchange="toggleLabels(!this.checked)" style="accent-color:#66c0f4;cursor:pointer;">
+        Show labels
       </label>
       <label style="margin-left:16px;cursor:pointer;user-select:none;">
         <input type="checkbox" id="fullWidth" onchange="toggleFullWidth(this.checked)" style="accent-color:#66c0f4;cursor:pointer;">
