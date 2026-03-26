@@ -4,7 +4,7 @@ Compare your game's capsule images and marketing assets side-by-side with simila
 
 **[Live Demo](https://astro75.github.io/steam-capsule-compare/)**
 
-![Screenshot](https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/730/header.jpg)
+![Screenshot](screenshot.png)
 
 ## What it does
 
