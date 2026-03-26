@@ -218,15 +218,40 @@
     .asset-panel { display: none; }
     .asset-panel.active { display: block; }
 
+    .scale-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .scale-control label {
+      font-size: 13px;
+      color: #8f98a0;
+      white-space: nowrap;
+    }
+
+    .scale-control input[type="range"] {
+      width: 160px;
+      accent-color: #66c0f4;
+      cursor: pointer;
+    }
+
+    .scale-control .scale-value {
+      font-size: 12px;
+      color: #66c0f4;
+      min-width: 36px;
+    }
+
     .capsule-grid {
       display: grid;
       gap: 16px;
     }
 
-    .capsule-grid.header-grid { grid-template-columns: repeat(auto-fill, minmax(440px, 1fr)); }
-    .capsule-grid.capsule-sm-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
-    .capsule-grid.screenshot-grid { grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); }
-    .capsule-grid.library-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+    .capsule-grid.header-grid { grid-template-columns: repeat(auto-fill, minmax(var(--header-min, 440px), 1fr)); }
+    .capsule-grid.capsule-sm-grid { grid-template-columns: repeat(auto-fill, minmax(var(--capsule-min, 220px), 1fr)); }
+    .capsule-grid.screenshot-grid { grid-template-columns: repeat(auto-fill, minmax(var(--screenshot-min, 380px), 1fr)); }
+    .capsule-grid.library-grid { grid-template-columns: repeat(auto-fill, minmax(var(--library-min, 180px), 1fr)); }
 
     .capsule-card {
       background: #2a475e;
@@ -384,6 +409,12 @@
       <button class="asset-tab" data-tab="small-capsules" onclick="switchTab('small-capsules')">Small Capsule (231x87)</button>
       <button class="asset-tab" data-tab="library" onclick="switchTab('library')">Library Capsule (600x900)</button>
       <button class="asset-tab" data-tab="screenshots" onclick="switchTab('screenshots')">Screenshots</button>
+    </div>
+
+    <div class="scale-control">
+      <label for="scaleSlider">Scale:</label>
+      <input type="range" id="scaleSlider" min="30" max="150" value="100" oninput="updateScale(this.value)">
+      <span class="scale-value" id="scaleValue">100%</span>
     </div>
 
     <div class="asset-panel active" id="panel-headers">
@@ -632,6 +663,16 @@
           </div>
         `;
       }).join('');
+    }
+
+    function updateScale(val) {
+      const pct = val / 100;
+      document.getElementById('scaleValue').textContent = val + '%';
+      const root = document.getElementById('compareSection').style;
+      root.setProperty('--header-min', Math.round(440 * pct) + 'px');
+      root.setProperty('--capsule-min', Math.round(220 * pct) + 'px');
+      root.setProperty('--screenshot-min', Math.round(380 * pct) + 'px');
+      root.setProperty('--library-min', Math.round(180 * pct) + 'px');
     }
 
     function switchTab(tab) {
