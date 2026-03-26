@@ -458,6 +458,7 @@
     const STEAM_CDN = 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps';
     const CORS_PROXY = 'https://corsproxy.io/?url=';
     let allGames = [];
+    let currentAppid = null;
 
     document.getElementById('searchInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') handleSearch();
@@ -558,7 +559,12 @@
       loadComparison(appid);
     }
 
+    document.getElementById('gameCount').addEventListener('change', () => {
+      if (currentAppid) loadComparison(currentAppid);
+    });
+
     async function loadComparison(appid) {
+      currentAppid = appid;
       const loading = document.getElementById('loading');
       const compareSection = document.getElementById('compareSection');
       const errorMsg = document.getElementById('errorMsg');
